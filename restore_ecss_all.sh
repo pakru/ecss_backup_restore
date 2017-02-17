@@ -92,7 +92,14 @@ echo ""
 echo "       Restore MySQL DBs"
 echo "_________________________________"
 echo
+
 mysql -uroot -p$MYSQL_ROOT_PASS < $TEMP_FOLDER/mysql_all/all_data.sql
+if [[ $? -ne 0 ]]; then
+  echo "Failed to restore DB from backup" 2>&1
+  CLEAN_TEMP
+  exit 1
+fi
+
 # echo "Restoring ECSS TC history DB..."
 # mysql -D history_db -o -uroot -p$MYSQL_ROOT_PASS < $TEMP_FOLDER/mysql_all/all_data.sql
 # if [[ $? -ne 0 ]]; then
@@ -128,23 +135,12 @@ mysql -uroot -p$MYSQL_ROOT_PASS < $TEMP_FOLDER/mysql_all/all_data.sql
 #   exit 1
 # fi
 
-CLEAN_TEMP
-
 #echo "Removing backup temp files..."
 #rm -rf $TEMP_FOLDER/
 
-# ssw@ecss1:~/backups/3.7.0/mysql_all$ mysql -D history_db -o -uroot -proot < all_data.sql 
-# mysql: [Warning] Using a password on the command line interface can be insecure.
-# ssw@ecss1:~/backups/3.7.0/mysql_all$ mysql -D ecss_call_trace -o -uroot -proot < all_data.sql 
-# mysql: [Warning] Using a password on the command line interface can be insecure.
-# ssw@ecss1:~/backups/3.7.0/mysql_all$ mysql -D ecss_calls_db -o -uroot -proot < all_data.sql 
-# mysql: [Warning] Using a password on the command line interface can be insecure.
-# ssw@ecss1:~/backups/3.7.0/mysql_all$ mysql -D ecss_statistics -o -uroot -proot < all_data.sql 
-# mysql: [Warning] Using a password on the command line interface can be insecure.
-# ssw@ecss1:~/backups/3.7.0/mysql_all$ mysql -D ecss_statistics -o -uroot -proot < all_data.sql
 
-#mysqldump -uroot -pssw -A < mysql_all/all_data.sql
-# 
+CLEAN_TEMP
+
 echo ""
 echo "All done!"
 
