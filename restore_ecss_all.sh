@@ -26,6 +26,16 @@ esac
 
 echo "Current folder is $CURRENT_FOLDER"
 
+CLEAN_TEMP ()
+{
+  echo "Removing backup temp files..."
+  rm -rf $TEMP_FOLDER/
+}
+
+echo "Trying to stop ECSS services before restore:"
+service restartd stop
+ecss_all_service stop
+
 echo "Creating temp folder:"
 mkdir -pv $TEMP_FOLDER/
 
@@ -43,11 +53,7 @@ echo "done"
 #mkdir -pv var/lib/ecss/
 #mkdir -pv run/ecss/
 #mkdir -pv mysql_all/
-
-
 #cp /etc/ecss 
-
-
 
 echo "_________________________________"
 echo ""
@@ -58,6 +64,7 @@ echo "Restoring ECSS configs..."
 cp -a $TEMP_FOLDER/etc/ecss/.  /etc/ecss/
 if [[ $? -ne 0 ]]; then
   echo "Failed to copy config files from backup" 2>&1
+  CLEAN_TEMP
   exit 1
 fi
 # echo "Coping /etc/default/ecss* files..."
@@ -69,6 +76,7 @@ echo "Restoring ECSS domains data..."
 cp -a $TEMP_FOLDER/var/lib/ecss/. /var/lib/ecss/
 if [[ $? -ne 0 ]]; then
   echo "Failed to copy files to /var/lib/ecss/ from backup" 2>&1
+  CLEAN_TEMP
   exit 1
 fi
 
@@ -84,43 +92,46 @@ echo ""
 echo "       Restore MySQL DBs"
 echo "_________________________________"
 echo
-echo "Restoring ECSS TC history DB..."
-mysql -D history_db -o -uroot -p$MYSQL_ROOT_PASS < $TEMP_FOLDER/mysql_all/all_data.sql
-if [[ $? -ne 0 ]]; then
-  echo "Failed to restore this DB from backup" 2>&1
-  exit 1
-fi
+mysql -uroot -p$MYSQL_ROOT_PASS < $TEMP_FOLDER/mysql_all/all_data.sql
+# echo "Restoring ECSS TC history DB..."
+# mysql -D history_db -o -uroot -p$MYSQL_ROOT_PASS < $TEMP_FOLDER/mysql_all/all_data.sql
+# if [[ $? -ne 0 ]]; then
+#   echo "Failed to restore this DB from backup" 2>&1
+#   exit 1
+# fi
+# 
+# echo "Restoring ECSS call trace DB..."
+# mysql -D ecss_call_trace -o -uroot -p$MYSQL_ROOT_PASS < $TEMP_FOLDER/mysql_all/all_data.sql
+# if [[ $? -ne 0 ]]; then
+#   echo "Failed to restore this DB from backup" 2>&1
+#   exit 1
+# fi
+# 
+# echo "Restoring ECSS statistics DB..."
+# mysql -D ecss_statistics -o -uroot -p$MYSQL_ROOT_PASS < $TEMP_FOLDER/mysql_all/all_data.sql
+# if [[ $? -ne 0 ]]; then
+#   echo "Failed to restore this DB from backup" 2>&1
+#   exit 1
+# fi
+# 
+# echo "Restoring ECSS call history DB..."
+# mysql -D ecss_calls_db -o -uroot -p$MYSQL_ROOT_PASS < $TEMP_FOLDER/mysql_all/all_data.sql
+# if [[ $? -ne 0 ]]; then
+#   echo "Failed to restore this DB from backup" 2>&1
+#   exit 1
+# fi
+# 
+# echo "Restoring ECSS subscribers DB..."
+# mysql -D ecss_subscribers -o -uroot -p$MYSQL_ROOT_PASS < $TEMP_FOLDER/mysql_all/all_data.sql
+# if [[ $? -ne 0 ]]; then
+#   echo "Failed to restore this DB from backup" 2>&1
+#   exit 1
+# fi
 
-echo "Restoring ECSS call trace DB..."
-mysql -D ecss_call_trace -o -uroot -p$MYSQL_ROOT_PASS < $TEMP_FOLDER/mysql_all/all_data.sql
-if [[ $? -ne 0 ]]; then
-  echo "Failed to restore this DB from backup" 2>&1
-  exit 1
-fi
+CLEAN_TEMP
 
-echo "Restoring ECSS statistics DB..."
-mysql -D ecss_statistics -o -uroot -p$MYSQL_ROOT_PASS < $TEMP_FOLDER/mysql_all/all_data.sql
-if [[ $? -ne 0 ]]; then
-  echo "Failed to restore this DB from backup" 2>&1
-  exit 1
-fi
-
-echo "Restoring ECSS call history DB..."
-mysql -D ecss_calls_db -o -uroot -p$MYSQL_ROOT_PASS < $TEMP_FOLDER/mysql_all/all_data.sql
-if [[ $? -ne 0 ]]; then
-  echo "Failed to restore this DB from backup" 2>&1
-  exit 1
-fi
-
-echo "Restoring ECSS subscribers DB..."
-mysql -D ecss_subscribers -o -uroot -p$MYSQL_ROOT_PASS < $TEMP_FOLDER/mysql_all/all_data.sql
-if [[ $? -ne 0 ]]; then
-  echo "Failed to restore this DB from backup" 2>&1
-  exit 1
-fi
-
-echo "Removing backup temp files..."
-rm -rf $TEMP_FOLDER/
+#echo "Removing backup temp files..."
+#rm -rf $TEMP_FOLDER/
 
 # ssw@ecss1:~/backups/3.7.0/mysql_all$ mysql -D history_db -o -uroot -proot < all_data.sql 
 # mysql: [Warning] Using a password on the command line interface can be insecure.
@@ -134,7 +145,10 @@ rm -rf $TEMP_FOLDER/
 
 #mysqldump -uroot -pssw -A < mysql_all/all_data.sql
 # 
- echo ""
- echo "All done!"
+echo ""
+echo "All done!"
+
+echo "Starting restartd"
+service restartd start
 
 exit 0

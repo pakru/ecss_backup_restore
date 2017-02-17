@@ -45,7 +45,11 @@ esac
 # echo "Coping /etc/init.d/ecss* files..."
 # cp -a /etc/init.d/ecss* etc/init.d/
 
+#rm -rf /var/lib/ecss/
+
 rm -rf /var/lib/ecss/
+
+
 # echo "Coping /var/lib/ecss/ folder..."
 # cp -a /var/lib/ecss/. var/lib/ecss/
 # echo "Coping /usr/lib/ecss/ folder..."

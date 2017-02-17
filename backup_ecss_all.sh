@@ -15,7 +15,15 @@ TIME_M=$(date --rfc-3339='seconds' | cut -d ' ' -f 2 | cut -d '+' -f 1 | cut -d 
 TIME=$TIME_H-$TIME_M
 BACKUP_FILENAME=${DATE}_${TIME}.tar.gz   # The name of backup archive
 
+CLEAN_TEMP ()
+{
+  echo "Removing temp files..."
+  rm -rf mysql_all/
+}
+
 echo "Current folder is $CURRENT_FOLDER"
+echo "Backup file name is $BACKUP_FILENAME"
+
 #echo "Creating folders:"
 
 # mkdir -pv etc/ecss/
@@ -36,6 +44,7 @@ mysqldump -uroot -p$MYSQL_ROOT_PASS -A > mysql_all/all_data.sql
 
 if [[ $? -ne 0 ]]; then
   echo "Failed to dump MySQL DBs" 2>&1
+  CLEAN_TEMP
   exit 1
 fi
 echo "Done"
@@ -44,13 +53,15 @@ echo ""
 echo "         Backup all ECSS-10 files..."
 echo "____________________________________________"
 #tar -czf $BACKUP_FILENAME /etc/ecss /etc/default/ecss* /etc/init.d/ecss* /var/lib/ecss /usr/lib/ecss mysql_all
-tar -czpf $BACKUP_FILENAME /etc/ecss /etc/default/ecss* /etc/init.d/ecss* /var/lib/ecss /usr/lib/ecss mysql_all
+#tar -czpf $BACKUP_FILENAME /etc/ecss /etc/default/ecss* /etc/init.d/ecss* /var/lib/ecss /usr/lib/ecss mysql_all
+tar -czpf $BACKUP_FILENAME /etc/ecss /etc/default/ecss* /var/lib/ecss /usr/lib/ecss mysql_all
 
 if [[ $? -ne 0 ]]; then
   echo "Failed to archive ECSS files" 2>&1
+  CLEAN_TEMP
   exit 1
 fi
-
+echo "Done"
 
 # echo "Coping /etc/ecss/ folder..."
 # cp -a /etc/ecss/. etc/ecss/
@@ -66,8 +77,8 @@ fi
 # cp -a /run/ecss/. run/ecss/
 # echo ""
 
-echo "Removing temp files..."
-rm -rf mysql_all/
+CLEAN_TEMP
+
 echo ""
 echo "All done!"
 
